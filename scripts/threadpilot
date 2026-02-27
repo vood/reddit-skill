@@ -26,9 +26,10 @@ CACHE_DIR="${THREADPILOT_CACHE_DIR:-$ROOT/.threadpilot}"
 BIN_DIR="$CACHE_DIR/bin"
 BIN_DEFAULT="$BIN_DIR/threadpilot-${OS}-${ARCH}"
 BIN_PATH="${THREADPILOT_BIN:-$BIN_DEFAULT}"
-THREADPILOT_PACKAGE="${THREADPILOT_PACKAGE:-github.com/vood/threadpilot/cmd/threadpilot}"
-THREADPILOT_VERSION="${THREADPILOT_VERSION:-latest}"
+THREADPILOT_REPO="${THREADPILOT_REPO:-https://github.com/vood/threadpilot.git}"
+THREADPILOT_REF="${THREADPILOT_REF:-main}"
 THREADPILOT_SOURCE_DIR="${THREADPILOT_SOURCE_DIR:-}"
+SRC_DIR="$CACHE_DIR/src"
 
 install_threadpilot() {
   mkdir -p "$BIN_DIR"
@@ -47,14 +48,34 @@ install_threadpilot() {
     return
   fi
 
+  if ! command -v git >/dev/null 2>&1; then
+    echo "Git is required to install threadpilot automatically. Set THREADPILOT_BIN or install Git."
+    exit 1
+  fi
   if ! command -v go >/dev/null 2>&1; then
     echo "Go is required to install threadpilot automatically. Set THREADPILOT_BIN or install Go."
     exit 1
   fi
 
-  echo "Installing $THREADPILOT_PACKAGE@$THREADPILOT_VERSION"
-  GOBIN="$BIN_DIR" go install "$THREADPILOT_PACKAGE@$THREADPILOT_VERSION"
-  mv "$BIN_DIR/threadpilot" "$BIN_DEFAULT"
+  if [[ -d "$SRC_DIR/.git" ]]; then
+    echo "Updating threadpilot source in $SRC_DIR"
+    git -C "$SRC_DIR" fetch --depth 1 origin "$THREADPILOT_REF"
+    git -C "$SRC_DIR" checkout -q FETCH_HEAD
+  else
+    if [[ -e "$SRC_DIR" ]]; then
+      echo "Existing non-git path blocks source checkout: $SRC_DIR"
+      echo "Remove it or set THREADPILOT_SOURCE_DIR / THREADPILOT_CACHE_DIR."
+      exit 1
+    fi
+    echo "Cloning $THREADPILOT_REPO ($THREADPILOT_REF)"
+    git clone --depth 1 --branch "$THREADPILOT_REF" "$THREADPILOT_REPO" "$SRC_DIR"
+  fi
+
+  echo "Building ThreadPilot from $SRC_DIR"
+  (
+    cd "$SRC_DIR"
+    GOOS="$OS" GOARCH="$ARCH" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "$BIN_DEFAULT" ./cmd/threadpilot
+  )
   chmod +x "$BIN_DEFAULT"
 }
 
