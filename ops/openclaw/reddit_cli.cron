@@ -3,6 +3,16 @@
 # Validate login/session daily.
 0 8 * * * cd /ABS/PATH/TO/reddit-skill && /bin/bash scripts/threadpilot whoami >> logs/threadpilot-whoami.log 2>&1
 
+# Randomized warmup runner (recommended baseline).
+# Configure via env:
+# REDDIT_WARMUP_SUBREDDIT, REDDIT_WARMUP_QUERY, REDDIT_WARMUP_LIMIT, REDDIT_WARMUP_JITTER_SEC
+# REDDIT_WARMUP_ENABLE_ACCOUNT_ACTIONS=1 for my-comments/my-replies/my-posts/my-subreddits
+15 */2 * * * cd /ABS/PATH/TO/reddit-skill && set -a && source "${REDDITCLI_ENV_FILE:-.env.threadpilot}" && set +a && /bin/bash ops/openclaw/warmup_random.sh >> logs/threadpilot-warmup.log 2>&1
+
+# Keyword reporting example.
+# Writes periodic search output for review.
+# 30 */4 * * * cd /ABS/PATH/TO/reddit-skill && mkdir -p reports && /bin/bash scripts/threadpilot search --query "agent workflows" --subreddit ChatGPT --limit 25 > "reports/search-$(date +\%Y\%m\%d-\%H\%M).txt" 2>&1
+
 # Optional like workflow (disabled by default).
 # Requires env file with REDDIT_PERMALINK or REDDIT_THING_ID and REDDIT_CONFIRM_LIKE=1.
 # 10 */6 * * * cd /ABS/PATH/TO/reddit-skill && set -a && source "${REDDITCLI_ENV_FILE:-.env.threadpilot}" && set +a && /bin/bash scripts/threadpilot like-target >> logs/threadpilot-like.log 2>&1
