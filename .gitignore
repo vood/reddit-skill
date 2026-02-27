@@ -1,3 +1,4 @@
 .threadpilot/
+.threadpilot*/
 logs/
 .env*
