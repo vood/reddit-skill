@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <install|login|whoami|my-comments|my-replies|my-posts|my-subreddits|subscribe|read|search|rules|like|post|like-target|post-comment> [args...]"
+  echo "Usage: $0 <install|gologin-profiles|login|whoami|my-comments|my-replies|my-posts|my-subreddits|subscribe|read|search|rules|like|post|like-target|post-comment> [args...]"
   exit 1
 fi
 
@@ -24,7 +24,7 @@ esac
 
 CACHE_DIR="${THREADPILOT_CACHE_DIR:-$ROOT/.threadpilot}"
 THREADPILOT_RELEASE_BASE_URL="${THREADPILOT_RELEASE_BASE_URL:-https://github.com/vood/threadpilot/releases/download}"
-THREADPILOT_VERSION="${THREADPILOT_VERSION:-v0.2.1}"
+THREADPILOT_VERSION="${THREADPILOT_VERSION:-v0.2.2}"
 BIN_DIR="$CACHE_DIR/bin/$THREADPILOT_VERSION"
 BIN_DEFAULT="$BIN_DIR/threadpilot-${OS}-${ARCH}"
 BIN_PATH="${THREADPILOT_BIN:-$BIN_DEFAULT}"
@@ -32,6 +32,91 @@ THREADPILOT_REPO="${THREADPILOT_REPO:-https://github.com/vood/threadpilot.git}"
 THREADPILOT_REF="${THREADPILOT_REF:-main}"
 THREADPILOT_SOURCE_DIR="${THREADPILOT_SOURCE_DIR:-}"
 SRC_DIR="$CACHE_DIR/src"
+GOLOGIN_CLOUDBROWSER_BASE_URL="${GOLOGIN_CLOUDBROWSER_BASE_URL:-https://cloudbrowser.gologin.com/connect}"
+GOLOGIN_API_BASE_URL="${GOLOGIN_API_BASE_URL:-https://api.gologin.com}"
+
+resolve_gologin_token() {
+  printf '%s' "${GOLOGIN_API_TOKEN:-${GOLOGIN_API_KEY:-${GL_API_TOKEN:-}}}"
+}
+
+print_gologin_profiles() {
+  local token api_url payload
+  token="$(resolve_gologin_token)"
+  if [[ -z "$token" ]]; then
+    echo "Missing GoLogin API token. Set GOLOGIN_API_TOKEN (or GOLOGIN_API_KEY / GL_API_TOKEN)."
+    exit 1
+  fi
+
+  api_url="${GOLOGIN_API_BASE_URL%/}/browser/v2"
+  if command -v curl >/dev/null 2>&1; then
+    payload="$(curl -fsSL --header "Authorization: Bearer ${token}" "$api_url")" || {
+      echo "Failed to fetch GoLogin profiles from $api_url"
+      exit 1
+    }
+  elif command -v wget >/dev/null 2>&1; then
+    payload="$(wget -q -O - --header="Authorization: Bearer ${token}" "$api_url")" || {
+      echo "Failed to fetch GoLogin profiles from $api_url"
+      exit 1
+    }
+  else
+    echo "curl or wget is required to fetch GoLogin profiles."
+    exit 1
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    GOLOGIN_PROFILE_PAYLOAD="$payload" python3 - <<'PY'
+import json
+import os
+import sys
+
+raw = os.environ.get("GOLOGIN_PROFILE_PAYLOAD", "")
+try:
+    data = json.loads(raw)
+except Exception:
+    sys.stdout.write(raw)
+    sys.exit(0)
+
+profiles = data.get("profiles") if isinstance(data, dict) else None
+if not isinstance(profiles, list):
+    sys.stdout.write(raw)
+    sys.exit(0)
+
+if not profiles:
+    print("No GoLogin profiles found.")
+    sys.exit(0)
+
+for profile in profiles:
+    if not isinstance(profile, dict):
+        continue
+    profile_id = str(profile.get("id", "")).strip()
+    name = str(profile.get("name", "")).strip()
+    role = str(profile.get("role", "")).strip()
+    browser_type = str(profile.get("browserType", "")).strip()
+    if not profile_id:
+        continue
+    print(f"{profile_id}\t{name}\t{role}\t{browser_type}")
+PY
+  else
+    printf '%s\n' "$payload"
+  fi
+}
+
+build_gologin_browser_url() {
+  local token profile_id
+  token="$(resolve_gologin_token)"
+  if [[ -z "$token" ]]; then
+    return 1
+  fi
+
+  profile_id="${GOLOGIN_PROFILE_ID:-${GOLOGIN_PROFILE:-}}"
+  if [[ -z "$profile_id" ]]; then
+    echo "Missing GOLOGIN_PROFILE_ID for GoLogin browser attach."
+    echo "Run: GOLOGIN_API_TOKEN='<token>' $0 gologin-profiles"
+    exit 1
+  fi
+
+  printf '%s?token=%s&profile=%s' "$GOLOGIN_CLOUDBROWSER_BASE_URL" "$token" "$profile_id"
+}
 
 download_threadpilot_binary() {
   local asset url
@@ -121,7 +206,7 @@ resolve_binary() {
     return
   fi
 
-  install_threadpilot
+  install_threadpilot >/dev/stderr
   echo "$BIN_DEFAULT"
 }
 
@@ -131,6 +216,11 @@ shift || true
 if [[ "$SUBCOMMAND" == "install" ]]; then
   install_threadpilot
   echo "Installed: $BIN_DEFAULT"
+  exit 0
+fi
+
+if [[ "$SUBCOMMAND" == "gologin-profiles" ]]; then
+  print_gologin_profiles
   exit 0
 fi
 
@@ -151,6 +241,8 @@ if [[ -n "${REDDIT_BROWSER_PROFILE:-}" ]]; then
 fi
 if [[ -n "${THREADPILOT_BROWSER_WS_URL:-${REDDIT_BROWSER_WS_URL:-${GOLOGIN_WS_URL:-${GOLOGIN_WS_ENDPOINT:-}}}}" ]]; then
   CMD+=("--browser-ws-endpoint" "${THREADPILOT_BROWSER_WS_URL:-${REDDIT_BROWSER_WS_URL:-${GOLOGIN_WS_URL:-${GOLOGIN_WS_ENDPOINT:-}}}}")
+elif [[ -n "$(resolve_gologin_token)" ]]; then
+  CMD+=("--browser-ws-endpoint" "$(build_gologin_browser_url)")
 fi
 if [[ -n "${THREADPILOT_BROWSER_DEBUG_URL:-${REDDIT_BROWSER_DEBUG_URL:-${GOLOGIN_DEBUG_URL:-}}}" ]]; then
   CMD+=("--browser-debug-url" "${THREADPILOT_BROWSER_DEBUG_URL:-${REDDIT_BROWSER_DEBUG_URL:-${GOLOGIN_DEBUG_URL:-}}}")
@@ -237,7 +329,7 @@ case "$SUBCOMMAND" in
     ;;
   *)
     echo "Unknown subcommand: $SUBCOMMAND"
-    echo "Usage: $0 <install|login|whoami|my-comments|my-replies|my-posts|my-subreddits|subscribe|read|search|rules|like|post|like-target|post-comment> [args...]"
+    echo "Usage: $0 <install|gologin-profiles|login|whoami|my-comments|my-replies|my-posts|my-subreddits|subscribe|read|search|rules|like|post|like-target|post-comment> [args...]"
     exit 1
     ;;
 esac

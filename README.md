@@ -67,18 +67,29 @@ It works with any Chromium-compatible browser that exposes CDP / DevTools, inclu
 - Chrome / Chromium
 - Chrome with `--remote-debugging-port`
 - browser profiles managed outside the skill
-- GoLogin (by passing its connection URL)
+- GoLogin (preferred: API token + profile id)
 
 Examples:
 
 ```bash
-GOLOGIN_WS_URL='<gologin-connect-url>' scripts/threadpilot whoami
+GOLOGIN_API_TOKEN='<token>' scripts/threadpilot gologin-profiles
+GOLOGIN_API_TOKEN='<token>' GOLOGIN_PROFILE_ID='<profile-id>' scripts/threadpilot whoami
 REDDIT_BROWSER_DEBUG_URL='http://127.0.0.1:9222' scripts/threadpilot whoami
+```
+
+Advanced override (if you already have a raw GoLogin connect URL):
+
+```bash
+GOLOGIN_WS_URL='<gologin-connect-url>' scripts/threadpilot whoami
 ```
 
 ## Quick Start
 
 ```bash
+# GoLogin setup (preferred when using GoLogin)
+GOLOGIN_API_TOKEN='<token>' scripts/threadpilot gologin-profiles
+GOLOGIN_API_TOKEN='<token>' GOLOGIN_PROFILE_ID='<profile-id>' scripts/threadpilot whoami
+
 # validate session
 scripts/threadpilot whoami
 
@@ -173,7 +184,7 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
   - `THREADPILOT_BIN`
   - `THREADPILOT_CACHE_DIR`
   - `THREADPILOT_RELEASE_BASE_URL`
-  - `THREADPILOT_VERSION` (default: `v0.2.1`)
+  - `THREADPILOT_VERSION` (default: `v0.2.2`)
   - `THREADPILOT_REPO`
   - `THREADPILOT_REF`
   - `THREADPILOT_SOURCE_DIR`
@@ -191,6 +202,13 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
 - External browser / GoLogin:
   - `THREADPILOT_BROWSER_WS_URL`
   - `THREADPILOT_BROWSER_DEBUG_URL`
+  - `GOLOGIN_API_TOKEN`
+  - `GOLOGIN_API_KEY` (alias)
+  - `GL_API_TOKEN` (alias)
+  - `GOLOGIN_PROFILE_ID`
+  - `GOLOGIN_PROFILE` (alias)
+  - `GOLOGIN_CLOUDBROWSER_BASE_URL`
+  - `GOLOGIN_API_BASE_URL`
   - `GOLOGIN_WS_URL`
   - `GOLOGIN_WS_ENDPOINT`
   - `GOLOGIN_DEBUG_URL`

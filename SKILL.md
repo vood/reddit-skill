@@ -1,6 +1,6 @@
 ---
 name: reddit-skill
-description: Run complete Reddit account operations through ThreadPilot with browser-first login, warmup scheduling, discovery/search reporting, subscription management, human-in-the-loop liking, and safe posting. Supports any Chromium-compatible browser via CDP attachment, including local DevTools endpoints and GoLogin-style WebSocket URLs. Use this skill when the user asks to warm up accounts, find/report posts by keyword or subreddit, review account activity, subscribe to communities, draft content from subreddit rules, attach to an existing browser session, or publish after explicit confirmation.
+description: Run complete Reddit account operations through ThreadPilot with browser-first login, warmup scheduling, discovery/search reporting, subscription management, human-in-the-loop liking, and safe posting. Supports any Chromium-compatible browser via CDP attachment, including local DevTools endpoints and a GoLogin API-token flow that can enumerate profiles before attach. Use this skill when the user asks to warm up accounts, find/report posts by keyword or subreddit, review account activity, subscribe to communities, draft content from subreddit rules, attach to an existing browser session, or publish after explicit confirmation.
 ---
 
 # Reddit Skill (ThreadPilot)
@@ -14,7 +14,9 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 - Browser/session attachment:
   - local managed browser via profile path
   - external browser via `REDDIT_BROWSER_DEBUG_URL`
-  - WebSocket attach via `REDDIT_BROWSER_WS_URL` / `GOLOGIN_WS_URL`
+  - direct attach via `REDDIT_BROWSER_WS_URL` / `GOLOGIN_WS_URL`
+  - GoLogin token flow via `GOLOGIN_API_TOKEN` + `GOLOGIN_PROFILE_ID`
+  - list GoLogin profiles with `scripts/threadpilot gologin-profiles`
 - Session and identity:
   - `scripts/threadpilot login`
   - `scripts/threadpilot whoami`
@@ -45,12 +47,14 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 
 ## Should-Do Operating Sequence
 
-1. Validate session first with `whoami`. Login only if missing/expired.
-2. Pull subreddit rules before drafting text.
-3. Run discovery/reporting (`read`, `search`) and review account state (`my-*`) before engagement.
-4. Use dry-run previews for likes/comments before any publish action.
-5. Require explicit confirmation before likes and duplicate-prone posts.
-6. Use random warmup cadence and jitter for recurring automation.
+1. If the user wants GoLogin, ask for `GOLOGIN_API_TOKEN` first.
+2. Run `scripts/threadpilot gologin-profiles`, then ask which profile id to use and set `GOLOGIN_PROFILE_ID`.
+3. Validate session with `whoami`. Login only if missing/expired.
+4. Pull subreddit rules before drafting text.
+5. Run discovery/reporting (`read`, `search`) and review account state (`my-*`) before engagement.
+6. Use dry-run previews for likes/comments before any publish action.
+7. Require explicit confirmation before likes and duplicate-prone posts.
+8. Use random warmup cadence and jitter for recurring automation.
 
 ## Warmup and Scheduler Guidance
 
@@ -66,3 +70,4 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 - Never execute likes without `REDDIT_CONFIRM_LIKE=1` (or dry-run preview).
 - Keep duplicate-post protection enabled unless user explicitly confirms override.
 - Pull rules before generating AI copy and enforce user confirmation before publish.
+- Do not ask the user for a raw GoLogin connect URL unless they already have one; prefer token -> profile listing -> profile selection.
