@@ -53,10 +53,28 @@ cd reddit-skill
 No bundled executables are required in repo. `scripts/threadpilot` will:
 
 1. use `THREADPILOT_BIN` if provided
-2. use cached binary from `.threadpilot/bin/`
+2. use cached versioned binary from `.threadpilot/bin/<version>/`
 3. use system `threadpilot` from `PATH`
 4. download release binary from `vood/threadpilot`
 5. fall back to source build if download fails
+
+## Browser Compatibility
+
+This setup is no longer tied to only locally launched Chrome.
+
+It works with any Chromium-compatible browser that exposes CDP / DevTools, including:
+
+- Chrome / Chromium
+- Chrome with `--remote-debugging-port`
+- browser profiles managed outside the skill
+- GoLogin (by passing its connection URL)
+
+Examples:
+
+```bash
+GOLOGIN_WS_URL='<gologin-connect-url>' scripts/threadpilot whoami
+REDDIT_BROWSER_DEBUG_URL='http://127.0.0.1:9222' scripts/threadpilot whoami
+```
 
 ## Quick Start
 
@@ -155,7 +173,7 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
   - `THREADPILOT_BIN`
   - `THREADPILOT_CACHE_DIR`
   - `THREADPILOT_RELEASE_BASE_URL`
-  - `THREADPILOT_VERSION`
+  - `THREADPILOT_VERSION` (default: `v0.2.0`)
   - `THREADPILOT_REPO`
   - `THREADPILOT_REF`
   - `THREADPILOT_SOURCE_DIR`
@@ -164,10 +182,18 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
   - `REDDIT_USER_AGENT`
   - `REDDIT_ACCESS_TOKEN`
   - `REDDIT_BROWSER_PROFILE`
+  - `REDDIT_BROWSER_WS_URL`
+  - `REDDIT_BROWSER_DEBUG_URL`
   - `REDDIT_HEADLESS`
   - `REDDIT_LOGIN_TIMEOUT_SEC`
   - `REDDIT_HOLD_ON_ERROR_SEC`
   - `REDDIT_CHROME_PATH`
+- External browser / GoLogin:
+  - `THREADPILOT_BROWSER_WS_URL`
+  - `THREADPILOT_BROWSER_DEBUG_URL`
+  - `GOLOGIN_WS_URL`
+  - `GOLOGIN_WS_ENDPOINT`
+  - `GOLOGIN_DEBUG_URL`
 - Safety controls:
   - `REDDIT_DRY_RUN`
   - `REDDIT_CONFIRM_LIKE`

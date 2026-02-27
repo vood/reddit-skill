@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Skill (ThreadPilot)"
-  short_description: "Reddit operations skill: warmup, discovery, reporting, subscribe, like, and post with human approval."
-  default_prompt: "Use threadpilot to run end-to-end Reddit operations: verify login, schedule randomized warmup, search/report by keyword, inspect account activity, subscribe to subreddits, and perform likes/posts only with explicit confirmation."
+  short_description: "Reddit operations skill with browser attach support, warmup, reporting, subscribe, like, and post."
+  default_prompt: "Use threadpilot to run end-to-end Reddit operations: attach to a local browser or GoLogin session, verify login, schedule randomized warmup, search/report by keyword, inspect account activity, subscribe to subreddits, and perform likes/posts only with explicit confirmation."

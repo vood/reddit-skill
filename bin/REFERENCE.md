@@ -11,7 +11,7 @@ Runtime binaries are sourced from:
 
 Defaults used by `scripts/threadpilot`:
 
-- `THREADPILOT_VERSION=v0.1.0`
+- `THREADPILOT_VERSION=v0.2.0`
 - `THREADPILOT_RELEASE_BASE_URL=https://github.com/vood/threadpilot/releases/download`
 
 Override example:

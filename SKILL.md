@@ -1,6 +1,6 @@
 ---
 name: reddit-skill
-description: Run complete Reddit account operations through ThreadPilot with browser-first login, warmup scheduling, discovery/search reporting, subscription management, human-in-the-loop liking, and safe posting. Use this skill when the user asks to warm up accounts, find/report posts by keyword or subreddit, review account activity, subscribe to communities, draft content from subreddit rules, or publish after explicit confirmation.
+description: Run complete Reddit account operations through ThreadPilot with browser-first login, warmup scheduling, discovery/search reporting, subscription management, human-in-the-loop liking, and safe posting. Supports any Chromium-compatible browser via CDP attachment, including local DevTools endpoints and GoLogin-style WebSocket URLs. Use this skill when the user asks to warm up accounts, find/report posts by keyword or subreddit, review account activity, subscribe to communities, draft content from subreddit rules, attach to an existing browser session, or publish after explicit confirmation.
 ---
 
 # Reddit Skill (ThreadPilot)
@@ -11,6 +11,10 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 
 ## Capability Map
 
+- Browser/session attachment:
+  - local managed browser via profile path
+  - external browser via `REDDIT_BROWSER_DEBUG_URL`
+  - WebSocket attach via `REDDIT_BROWSER_WS_URL` / `GOLOGIN_WS_URL`
 - Session and identity:
   - `scripts/threadpilot login`
   - `scripts/threadpilot whoami`
