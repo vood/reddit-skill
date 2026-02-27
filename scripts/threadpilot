@@ -25,12 +25,31 @@ esac
 CACHE_DIR="${THREADPILOT_CACHE_DIR:-$ROOT/.threadpilot}"
 BIN_DIR="$CACHE_DIR/bin"
 BIN_DEFAULT="$BIN_DIR/threadpilot-${OS}-${ARCH}"
-BIN_BUNDLED="$ROOT/bin/threadpilot-${OS}-${ARCH}"
 BIN_PATH="${THREADPILOT_BIN:-$BIN_DEFAULT}"
+THREADPILOT_RELEASE_BASE_URL="${THREADPILOT_RELEASE_BASE_URL:-https://github.com/vood/threadpilot/releases/download}"
+THREADPILOT_VERSION="${THREADPILOT_VERSION:-v0.1.0}"
 THREADPILOT_REPO="${THREADPILOT_REPO:-https://github.com/vood/threadpilot.git}"
 THREADPILOT_REF="${THREADPILOT_REF:-main}"
 THREADPILOT_SOURCE_DIR="${THREADPILOT_SOURCE_DIR:-}"
 SRC_DIR="$CACHE_DIR/src"
+
+download_threadpilot_binary() {
+  local asset url
+  asset="threadpilot-${OS}-${ARCH}"
+  url="${THREADPILOT_RELEASE_BASE_URL}/${THREADPILOT_VERSION}/${asset}"
+
+  echo "Downloading ${asset} from ${url}"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$BIN_DEFAULT" || return 1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$BIN_DEFAULT" "$url" || return 1
+  else
+    return 1
+  fi
+
+  chmod +x "$BIN_DEFAULT"
+  return 0
+}
 
 install_threadpilot() {
   mkdir -p "$BIN_DIR"
@@ -49,12 +68,18 @@ install_threadpilot() {
     return
   fi
 
+  if download_threadpilot_binary; then
+    return
+  fi
+
+  echo "Release binary download failed; falling back to source build."
+
   if ! command -v git >/dev/null 2>&1; then
-    echo "Git is required to install threadpilot automatically. Set THREADPILOT_BIN or install Git."
+    echo "Git is required for source fallback. Set THREADPILOT_BIN, THREADPILOT_SOURCE_DIR, or install Git."
     exit 1
   fi
   if ! command -v go >/dev/null 2>&1; then
-    echo "Go is required to install threadpilot automatically. Set THREADPILOT_BIN or install Go."
+    echo "Go is required for source fallback. Set THREADPILOT_BIN, THREADPILOT_SOURCE_DIR, or install Go."
     exit 1
   fi
 
@@ -83,11 +108,6 @@ install_threadpilot() {
 resolve_binary() {
   if [[ -n "${THREADPILOT_BIN:-}" && -x "$THREADPILOT_BIN" ]]; then
     echo "$THREADPILOT_BIN"
-    return
-  fi
-
-  if [[ -x "$BIN_BUNDLED" ]]; then
-    echo "$BIN_BUNDLED"
     return
   fi
 

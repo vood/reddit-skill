@@ -2,3 +2,5 @@
 .threadpilot*/
 logs/
 .env*
+bin/threadpilot-*
+bin/SHA256SUMS

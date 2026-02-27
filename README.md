@@ -11,11 +11,7 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 - `SKILL.md` with behavior, triggers, and workflow
 - `scripts/threadpilot` launcher with safe wrappers (`like-target`, `post-comment`)
 - `scripts/reddit-cli` backward-compatible alias
-- Prebuilt binaries in `bin/` for:
-  - `darwin/amd64`
-  - `darwin/arm64`
-  - `linux/amd64`
-  - `linux/arm64`
+- Binary reference in `bin/REFERENCE.md` (release-source, not bundled executables)
 - `ops/openclaw/reddit_cli.cron` template for scheduled runs
 
 ## Installation
@@ -83,10 +79,10 @@ REDDIT_THING_ID=t3_xxxxx REDDIT_PERMALINK='<url>' REDDIT_TEXT='approved text' sc
 `scripts/threadpilot` resolves runtime in this order:
 
 1. `THREADPILOT_BIN` (explicit path)
-2. Bundled binary in `bin/threadpilot-<os>-<arch>`
-3. Cached binary in `.threadpilot/bin/`
-4. System `threadpilot` from `PATH`
-5. Auto-install by cloning `vood/threadpilot` and building from source
+2. Cached binary in `.threadpilot/bin/`
+3. System `threadpilot` from `PATH`
+4. Auto-install from `vood/threadpilot` release asset by version
+5. Source fallback by cloning `vood/threadpilot` and building
 
 Manual install/bootstrap:
 
@@ -98,6 +94,8 @@ scripts/threadpilot install
 
 - `THREADPILOT_BIN`: Force exact binary path.
 - `THREADPILOT_CACHE_DIR`: Override local cache directory (default: `.threadpilot`).
+- `THREADPILOT_RELEASE_BASE_URL`: Release base URL for binary downloads.
+- `THREADPILOT_VERSION`: Binary release version to download (default: `v0.1.0`).
 - `THREADPILOT_REPO`: Git repo used for source bootstrap.
 - `THREADPILOT_REF`: Git ref/branch for source bootstrap (default: `main`).
 - `THREADPILOT_SOURCE_DIR`: Build from local source tree instead of cloning.
