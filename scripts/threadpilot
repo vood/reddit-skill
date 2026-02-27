@@ -25,6 +25,7 @@ esac
 CACHE_DIR="${THREADPILOT_CACHE_DIR:-$ROOT/.threadpilot}"
 BIN_DIR="$CACHE_DIR/bin"
 BIN_DEFAULT="$BIN_DIR/threadpilot-${OS}-${ARCH}"
+BIN_BUNDLED="$ROOT/bin/threadpilot-${OS}-${ARCH}"
 BIN_PATH="${THREADPILOT_BIN:-$BIN_DEFAULT}"
 THREADPILOT_REPO="${THREADPILOT_REPO:-https://github.com/vood/threadpilot.git}"
 THREADPILOT_REF="${THREADPILOT_REF:-main}"
@@ -82,6 +83,11 @@ install_threadpilot() {
 resolve_binary() {
   if [[ -n "${THREADPILOT_BIN:-}" && -x "$THREADPILOT_BIN" ]]; then
     echo "$THREADPILOT_BIN"
+    return
+  fi
+
+  if [[ -x "$BIN_BUNDLED" ]]; then
+    echo "$BIN_BUNDLED"
     return
   fi
 
