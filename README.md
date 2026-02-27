@@ -173,7 +173,7 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
   - `THREADPILOT_BIN`
   - `THREADPILOT_CACHE_DIR`
   - `THREADPILOT_RELEASE_BASE_URL`
-  - `THREADPILOT_VERSION` (default: `v0.2.0`)
+  - `THREADPILOT_VERSION` (default: `v0.2.1`)
   - `THREADPILOT_REPO`
   - `THREADPILOT_REF`
   - `THREADPILOT_SOURCE_DIR`
