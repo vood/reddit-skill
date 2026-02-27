@@ -1,0 +1,12 @@
+# Replace /ABS/PATH/TO/reddit-skill with the real path.
+
+# Validate login/session daily.
+0 8 * * * cd /ABS/PATH/TO/reddit-skill && /bin/bash scripts/threadpilot whoami >> logs/threadpilot-whoami.log 2>&1
+
+# Optional like workflow (disabled by default).
+# Requires env file with REDDIT_PERMALINK or REDDIT_THING_ID and REDDIT_CONFIRM_LIKE=1.
+# 10 */6 * * * cd /ABS/PATH/TO/reddit-skill && set -a && source "${REDDITCLI_ENV_FILE:-.env.threadpilot}" && set +a && /bin/bash scripts/threadpilot like-target >> logs/threadpilot-like.log 2>&1
+
+# Optional post workflow (disabled by default).
+# Requires env file with REDDIT_THING_ID, REDDIT_PERMALINK, REDDIT_TEXT.
+# 20 */6 * * * cd /ABS/PATH/TO/reddit-skill && set -a && source "${REDDITCLI_ENV_FILE:-.env.threadpilot}" && set +a && /bin/bash scripts/threadpilot post-comment >> logs/threadpilot-post.log 2>&1
