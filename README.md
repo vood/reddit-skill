@@ -2,7 +2,7 @@
 
 Full Reddit operations skill powered by [`threadpilot`](https://github.com/vood/threadpilot): login, warmup, discovery, reporting, subscribing, liking, and posting with explicit safety gates.
 
-Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.ai](https://writingmate.ai), [aidictation.com](https://aidictation.com), and [mentioned.to](https://mentioned.to).
+Created by [Aleksei Vysotskii](https://linkedin.com/in/avysotski), founder of [writingmate.ai](https://writingmate.ai), [mentioned.to](https://mentioned.to), and [aidictation.com](https://aidictation.com).
 
 ## What This Skill Can Do
 
@@ -22,6 +22,7 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
   - `post-comment` wrapper (duplicate-protected, preview/publish flow)
 - Warmup automation:
   - random action runner: `ops/openclaw/warmup_random.sh`
+  - hot-topic review queue: `ops/openclaw/hot_topic_review.sh`
   - scheduler templates: `ops/openclaw/reddit_cli.cron`
 
 ## What It Should Do (Recommended Flow)
@@ -164,6 +165,29 @@ Enable optional actions via env:
 - `REDDIT_WARMUP_ENABLE_POST=1` with `REDDIT_THING_ID`, `REDDIT_PERMALINK`, `REDDIT_TEXT`
 - `REDDIT_WARMUP_JITTER_SEC=900` for randomized delay
 
+## Hot Topic Review Loop
+
+Run one approval-gated hot-topic review pass:
+
+```bash
+ops/openclaw/hot_topic_review.sh
+```
+
+What it does:
+
+- adds jitter inside the run window
+- validates the session with `whoami`
+- reads current hot posts from one subreddit
+- writes a review queue under `state/hot-topic-review/`
+- includes preview/confirm like commands and one comment draft slot
+- does not auto-like or auto-comment
+
+Suggested 5-minute cron:
+
+```cron
+*/5 * * * * cd /ABS/PATH/TO/reddit-skill && mkdir -p logs && set -a && source "${REDDITCLI_ENV_FILE:-.env.threadpilot}" && set +a && /bin/bash ops/openclaw/hot_topic_review.sh >> logs/threadpilot-hot-topic-review.log 2>&1
+```
+
 ## Reporting Examples
 
 Keyword report file:
@@ -226,6 +250,10 @@ scripts/threadpilot read --subreddit ChatGPT --sort top --limit 25 > reports/cha
   - `REDDIT_WARMUP_SUBSCRIBE_SUBREDDIT`
   - `REDDIT_WARMUP_ENABLE_LIKE`
   - `REDDIT_WARMUP_ENABLE_POST`
+  - `REDDIT_REVIEW_SUBREDDIT`
+  - `REDDIT_REVIEW_LIMIT`
+  - `REDDIT_REVIEW_JITTER_SEC`
+  - `REDDIT_REVIEW_LIKE_PREVIEW_COUNT`
 
 ## Scheduler
 
@@ -237,6 +265,7 @@ It includes:
 
 - daily session checks
 - random warmup runs
+- optional 5-minute hot-topic review loop
 - optional confirmed like/post jobs
 
 ## Compatibility

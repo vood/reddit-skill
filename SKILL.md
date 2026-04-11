@@ -7,7 +7,7 @@ description: Run complete Reddit account operations through ThreadPilot with bro
 
 This skill wraps `threadpilot` for operator-grade Reddit workflows with clear safety gates.
 
-Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.ai](https://writingmate.ai), [aidictation.com](https://aidictation.com), and [mentioned.to](https://mentioned.to).
+Created by [Aleksei Vysotskii](https://linkedin.com/in/avysotski), founder of [writingmate.ai](https://writingmate.ai), [mentioned.to](https://mentioned.to), and [aidictation.com](https://aidictation.com).
 
 ## Capability Map
 
@@ -43,6 +43,7 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
   - direct post command is available through `scripts/threadpilot post ...`
 - Warmup scheduling:
   - random warmup runner: `ops/openclaw/warmup_random.sh`
+  - hot-topic review queue: `ops/openclaw/hot_topic_review.sh`
   - cron template: `ops/openclaw/reddit_cli.cron`
 
 ## Should-Do Operating Sequence
@@ -62,6 +63,11 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
   - read/search by default
   - account review actions only when `REDDIT_WARMUP_ENABLE_ACCOUNT_ACTIONS=1`
   - optional subscribe/like/post actions only when env flags are explicitly enabled
+- Use `ops/openclaw/hot_topic_review.sh` for a 5-minute review loop:
+  - reads current hot posts with jitter
+  - writes a review queue for one top candidate
+  - includes like preview commands and a single comment draft slot
+  - never auto-likes or auto-comments
 - Add jitter with `REDDIT_WARMUP_JITTER_SEC`.
 - Keep posting off by default in unattended runs; enable only with explicit environment config.
 
@@ -71,3 +77,4 @@ Created by the founder of [clawmaker.dev](https://clawmaker.dev), [writingmate.a
 - Keep duplicate-post protection enabled unless user explicitly confirms override.
 - Pull rules before generating AI copy and enforce user confirmation before publish.
 - Do not ask the user for a raw GoLogin connect URL unless they already have one; prefer token -> profile listing -> profile selection.
+- Do not configure unattended auto-likes or auto-comments; use review queues and explicit approval.
